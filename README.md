@@ -51,3 +51,5 @@ pest()->extend(Tests\TenantTestCase::class)
     ->in('Tenant');
 ```
 4) Add your tests to the `tests/Tenants` folder and that's it! 🚀
+
+> If you have a more practical idea, let me know. 😅
