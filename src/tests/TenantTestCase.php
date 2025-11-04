@@ -14,14 +14,11 @@ abstract class TenantTestCase extends BaseTestCase
 {
     use RefreshDatabase;
 
-    protected const string TENANT_DOMAIN = '127.0.0.1';
+    protected const string TENANT_DOMAIN = '127.0.0.1'; // The same in "phpunit.xml"
 
     protected ?string $tenantId = null;
 
-    // Active tenant
     protected bool $tenancy = true;
-
-    protected ?string $loginUrl = null;
 
     protected ?string $tenantDatabasePath = null;
 
@@ -32,8 +29,6 @@ abstract class TenantTestCase extends BaseTestCase
         parent::setUp();
 
         $this->app->make(\Spatie\Permission\PermissionRegistrar::class)->forgetCachedPermissions();
-
-        $this->loginUrl = '/login';
 
         $this->determineTenancyFromTestPath();
 
@@ -105,8 +100,6 @@ abstract class TenantTestCase extends BaseTestCase
         $this->createTenantFootprints($tenant);
 
         tenancy()->initialize($tenant);
-
-        $this->loginUrl = '/' . config('cms.tenant_panel.path') . '/login';
     }
 
     private function createTenant(): Tenant
