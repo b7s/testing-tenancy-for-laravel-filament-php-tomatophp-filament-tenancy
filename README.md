@@ -8,8 +8,9 @@ Testing (Laravel) **Filament PHP** with the [tomatophp/filament-tenancy](https:/
 
 ## Steps
 
-1) Separate the tests into the appropriate folders: `Tenant/Admin` and `Tenant/Tenants` 
-2) Configure your root `phpunit.xml`:
+1) Separate the tests into the appropriate folders: `Tenant/Admin` and `Tenant/Tenants`
+   - The script uses this separation to automatically identify whether or not to activate the tenant.
+3) Configure your root `phpunit.xml`:
    - If you use SQLite: I needed to change the test, which previously used an in-memory "sqlite" database, to a physical file `database/testing.sqlite` (remember to add it to the ".gitignore" file).
 
 ```xml
