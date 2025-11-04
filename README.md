@@ -8,7 +8,8 @@ Testing (Laravel) **Filament PHP** with the [tomatophp/filament-tenancy](https:/
 
 ## Steps
 
-1) Configure your root `phpunit.xml`:
+1) Separate the tests into the appropriate folders: `Tenant/Admin` and `Tenant/Tenants` 
+2) Configure your root `phpunit.xml`:
    - If you use SQLite: I needed to change the test, which previously used an in-memory "sqlite" database, to a physical file `database/testing.sqlite` (remember to add it to the ".gitignore" file).
 
 ```xml
@@ -32,9 +33,9 @@ Testing (Laravel) **Filament PHP** with the [tomatophp/filament-tenancy](https:/
     </php>
 ```
 
-2) Create a custom TestCase for tenants in `tests/TenantTestCase.php`: See the [code here](src/tests/TenantTestCase.php)
+3) Create a custom TestCase for tenants in `tests/TenantTestCase.php`: See the [code here](src/tests/TenantTestCase.php)
 
-3) Now add a custom configuration for the Tenants in: `tests/Pest.php` file
+4) Now add a custom configuration for the Tenants in: `tests/Pest.php` file
    - All tenant tests are located in the `tests/Tenants` folder.
    - In the "beforeEach" block, configure it however you like.
 
@@ -50,6 +51,6 @@ pest()->extend(Tests\TenantTestCase::class)
     })
     ->in('Tenant');
 ```
-4) Add your tests to the `tests/Tenants` folder and that's it! 🚀
+5) Add your tests to the `tests/Tenants` folder and that's it! 🚀
 
 > If you have a more practical idea, let me know. 😅
