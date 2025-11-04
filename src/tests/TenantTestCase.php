@@ -32,6 +32,9 @@ abstract class TenantTestCase extends BaseTestCase
 
         $this->determineTenancyFromTestPath();
 
+        // Clean up orphaned test files from previous failed tests
+        $this->cleanupOrphanedTestFiles();
+
         if ($this->tenancy) {
             $this->initializeTenancy();
         }
@@ -67,9 +70,9 @@ abstract class TenantTestCase extends BaseTestCase
             } catch (\Throwable $e) {
                 // Log error but continue teardown
                 error_log("Failed to remove tenant footprints: {$e->getMessage()}");
+            } finally {
+                parent::tearDown();
             }
-
-            parent::tearDown();
         }
     }
 
@@ -150,7 +153,7 @@ abstract class TenantTestCase extends BaseTestCase
             $this->tenantDatabasePath,
             database_path(config('tenancy.database.prefix') . $this->tenantId . config('tenancy.database.suffix')),
             config('database.connections.dynamic.database'),
-        ], static fn ($path) => is_string($path) && $path !== '' && $path !== ':memory:');
+        ], static fn($path) => is_string($path) && $path !== '' && $path !== ':memory:');
 
         $deleted = [];
 
@@ -160,6 +163,8 @@ abstract class TenantTestCase extends BaseTestCase
             }
 
             $this->deleteTenantDatabaseFile($path);
+            $this->deleteTenantDatabaseFile($path . '-wal');
+            $this->deleteTenantDatabaseFile($path . '-shm');
 
             $deleted[$path] = true;
         }
@@ -198,22 +203,29 @@ abstract class TenantTestCase extends BaseTestCase
 
     private function deleteTenantDatabaseFile(string $path): void
     {
-        if ($this->tenantId === null || ! File::exists($path)) {
+        if (! File::exists($path)) {
             return;
         }
 
         $databaseDir = rtrim(realpath(database_path()) ?: database_path(), DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR;
         $realPath = realpath($path) ?: $path;
 
-        if (! str_contains($realPath, $this->tenantId)) {
-            return;
-        }
-
+        // Check if file is in database directory
         if (! str_starts_with($realPath, $databaseDir)) {
             return;
         }
 
-        File::delete($path);
+        // Check if file contains tenant ID or test pattern
+        $basename = basename($path);
+        if ($this->tenantId !== null && str_contains($basename, $this->tenantId)) {
+            File::delete($path);
+            return;
+        }
+
+        // Check for test pattern in filename
+        if (str_contains($basename, 'pest_test_')) {
+            File::delete($path);
+        }
     }
 
     private function resolveTenantDatabasePath(Tenant $tenant): ?string
@@ -222,7 +234,7 @@ abstract class TenantTestCase extends BaseTestCase
 
         $databaseName = $databaseConfig->getName();
 
-        if ($databaseName === null || $databaseName === '' || $databaseName === ':memory:') {
+        if (in_array($databaseName, [null, '', ':memory:'], true)) {
             return null;
         }
 
@@ -260,5 +272,38 @@ abstract class TenantTestCase extends BaseTestCase
         $base = storage_path($suffixBase === '' ? '' : $suffixBase);
 
         return realpath($base) ?: $base;
+    }
+
+    /**
+     * Clean up orphaned test files from previous failed tests
+     */
+    private function cleanupOrphanedTestFiles(): void
+    {
+        try {
+            // Clean up orphaned database files
+            $databasePath = database_path();
+            if (File::isDirectory($databasePath)) {
+                $files = File::glob($databasePath . '/*pest_test_*');
+                foreach ($files as $file) {
+                    if (File::exists($file)) {
+                        File::delete($file);
+                    }
+                }
+            }
+
+            // Clean up orphaned storage directories
+            $storageBase = $this->tenantStorageBasePath();
+            if ($storageBase !== null && File::isDirectory($storageBase)) {
+                $directories = File::directories($storageBase);
+                foreach ($directories as $directory) {
+                    if (str_contains(basename($directory), 'pest_test_')) {
+                        File::deleteDirectory($directory);
+                    }
+                }
+            }
+        } catch (\Throwable $e) {
+            // Silently fail - this is just cleanup
+            error_log("Failed to cleanup orphaned test files: {$e->getMessage()}");
+        }
     }
 }
