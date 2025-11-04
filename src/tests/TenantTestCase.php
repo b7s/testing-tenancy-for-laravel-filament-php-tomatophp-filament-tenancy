@@ -51,7 +51,8 @@ abstract class TenantTestCase extends BaseTestCase
         foreach ($backtrace as $trace) {
             if (
                 isset($trace['class']) &&
-                str_contains($trace['class'], 'Tenant\\Browser\\Admin')
+                str_contains($trace['class'], 'Tenant\\') &&
+                str_contains($trace['class'], '\\Admin')
             ) {
                 $this->tenancy = false;
                 break;
