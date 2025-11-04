@@ -22,7 +22,7 @@ Testing (Laravel) **Filament PHP** with the [tomatophp/filament-tenancy](https:/
     <php>
         <env name="APP_ENV" value="testing"/>
         <env name="APP_URL" value="https://127.0.0.1"/>
-        <env name="CENTRAL_DOMAIN" value="YOUR-CENTRAL-DOMAIN.test"/>
+        <env name="CENTRAL_DOMAIN" value="127.0.0.1"/>
         <env name="DB_CONNECTION" value="sqlite"/>
         <env name="DB_DATABASE" value="database/testing.sqlite"/>
         <env name="CACHE_DRIVER" value="array"/>
